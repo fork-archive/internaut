@@ -90,23 +90,23 @@
 (defun init-shaders ()
 (let ((frags (load-file "rsrc/shaders/points.fs"))
       (verts (load-file "rsrc/shaders/points.vs"))
-      (geos (load-file "rsrc/shaders/points.gs"))
+      ;(geos (load-file "rsrc/shaders/points.gs"))
       (fs (gl:create-shader :fragment-shader))
       (vs (gl:create-shader :vertex-shader))
-      (gs (gl:create-shader :geometry-shader))
+      ;(gs (gl:create-shader :geometry-shader))
       (shaderprogram (gl:create-program)))
 
   (gl:shader-source fs frags)
   (gl:shader-source vs verts)
-  (gl:shader-source gs geos)
+  ;(gl:shader-source gs geos)
 
   (gl:compile-shader fs)
   (gl:compile-shader vs)
-  (gl:compile-shader gs)
+  ;(gl:compile-shader gs)
 
  (format t (gl:get-shader-info-log fs))
  (format t (gl:get-shader-info-log vs))
- (format t (gl:get-shader-info-log gs))
+ ;(format t (gl:get-shader-info-log gs))
 
   (gl:attach-shader shaderprogram fs)
   (gl:attach-shader shaderprogram vs)

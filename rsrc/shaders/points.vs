@@ -1,4 +1,4 @@
-#version 150
+#version 130
 
 /*
 in int gl_VertexID;
