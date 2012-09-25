@@ -23,6 +23,15 @@
 			       )
 		     finally (return alpha))))
 
+(defun seq-sub-glbuf(vec type &key (offset 0) (size (length vec)))
+(gl:with-mapped-buffer (p :array-buffer :write-only)
+  (loop for i from offset below size
+      do (setf (cffi:mem-aref p type i) (aref vec i)))))
+
+(defun seq-to-glbuf(vec type &key (draw :dynamic-draw))
+(%gl:buffer-data :array-buffer (* (length vec) (cffi:foreign-type-size type)) (cffi:null-pointer) draw)
+(seq-sub-glbuf vec type))
+
 (defun list-to-gl-array(type list)
   (let ((alpha (gl:alloc-gl-array type (length list))))
     (loop for i from 0 to (- (length list) 1)

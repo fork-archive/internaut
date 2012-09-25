@@ -5,10 +5,11 @@
 (asdf:load-system :lispbuilder-sdl)
 (use-package :sb-thread)
 
-(defparameter *proc-jump* 1)
+(defparameter *proc-jump* 0.01)
 (defparameter *frame-rate* 160)
 (defparameter *itups* internal-time-units-per-second)
 
+(defun reload()
 (load "fractals.lisp")
 (load "utils.lisp")
 (load "glm.lisp")
@@ -17,7 +18,9 @@
 (load "physics.lisp")
 (load "listen.lisp")
 (load "interact.lisp")
-(load "interface.lisp")
+(load "interface.lisp"))
+
+(reload)
 
 (defvar *modelview-matrix*)
 (defvar *projection-matrix*)
@@ -32,7 +35,6 @@
 (defparameter *fullscreen* nil)
 
 (defun draw ()
-
 
 (gl:uniform-matrix *projectm* 4 (vector *projection-matrix*))
 (gl:uniform-matrix *modelviewm* 4 (vector *modelview-matrix*))
@@ -129,7 +131,9 @@
 (defun clean-all ()
 (release-mutex *cg-box-lock*)
 (release-mutex *cg-run-lock*)
+(loop for obj in *cg-box* do (cg-clean (nth 0 obj)))
 (sdl:quit-sdl)
+
 (setf *cg-box* nil)
 (setf /key-down-map/ nil)
 (setf /key-up-map/ nil))
