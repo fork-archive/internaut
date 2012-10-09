@@ -1,8 +1,7 @@
-(require :asdf)
-(asdf:load-system :cl-opengl)
-(asdf:load-system :cl-glut)
+(ql:quickload "cl-opengl")
+(ql:quickload "cl-glut")
 ;(asdf:load-system :cl-glu)
-(asdf:load-system :lispbuilder-sdl)
+(ql:quickload "lispbuilder-sdl")
 (use-package :sb-thread)
 
 (defparameter *proc-jump* 0.01)
