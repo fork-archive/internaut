@@ -80,13 +80,13 @@
 
 #|
 (defun set-location (loc-list)
-(with-mutex (*self-lock*)
+(sb-thread:with-mutex (*self-lock*)
   (setf /location/ loc-list)))
 (defun get-location ()
-(with-mutex (*self-lock*)
+(sb-thread:with-mutex (*self-lock*)
   /location/))
 |#
-(defvar *key-lock* (make-mutex :name "key-lock"))
+(defvar *key-lock* (sb-thread:make-mutex :name "key-lock"))
 (defvar /key-down-map/ '())
 (defvar /key-up-map/ '())
 

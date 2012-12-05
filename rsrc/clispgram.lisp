@@ -1,6 +1,6 @@
 (defclass clispgram (STANDARD-OBJECT)
 ((interval :initarg :interval :initform 1)
- (objlock :initform (make-mutex :name "objlock"))
+ (objlock :initform (sb-thread:make-mutex :name "objlock"))
  (name :initarg :name :initform "clispgram")))
 
 (defgeneric cg-init (object)
@@ -28,47 +28,13 @@
 (defmethod cg-interval ((object clispgram))
 (slot-value object 'interval))
 (defmethod cg-clean ((object clispgram))
-(release-mutex (slot-value object 'objlock)))
+(sb-thread:release-mutex (slot-value object 'objlock)))
 
 (defmethod cg-lock ((object clispgram))
-(get-mutex (slot-value object 'objlock)))
+(sb-thread:grab-mutex (slot-value object 'objlock)))
 (defmethod cg-unlock ((object clispgram))
-(release-mutex (slot-value object 'objlock)))
+(sb-thread:release-mutex (slot-value object 'objlock)))
 (defmethod cg-scoped-lock ((object clispgram) function)
-(with-mutex ((slot-value object 'objlock)) function))
+(sb-thread:with-mutex ((slot-value object 'objlock)) function))
 
 (defmethod cg-visualize ((object clispgram))())
-
-(defvar *cg-box* '())
-(defvar *cg-box-lock* (make-mutex :name "pickme"))
-"This is locked by the GL loop. In order to modify the list, we must lock this mutex."
-
-(defvar *cg-run-lock* (make-mutex :name "runlock"))
-
-(defmethod add-to-cg-box ((object clispgram))
-(with-mutex (*cg-box-lock*)
-  (cg-init object)
-  (setf *cg-box* (append *cg-box* (list (list object 0))))))
-
-(defun proc-loop ()
-(let ((ticks  0))
-  (loop (progn (setq ticks (get-internal-run-time))
-	       (with-mutex (*cg-run-lock*)
-          (loop for obj in *cg-box*
-	     do (let ((fi (nth 0 obj))
-		      (la (nth 1 obj)))
-		(if (= 0 la)
-		    (progn
-		      (cg-lock fi)
-		      (cg-evaluate fi)
-		      (setf la (cg-interval fi))
-		      (cg-unlock fi))
-		    (setf la (- la 1)))
-		)))
-
-	        (let ((time (- (get-internal-run-time) ticks)))
-		    (if (< time (* *proc-jump* *itups*))
-			(sleep (- *proc-jump* (/ time *itups*)))
-			()
-))))))
-(defun proc-quit () ())
