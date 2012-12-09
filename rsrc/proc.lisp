@@ -13,17 +13,17 @@
 	(let ((ticks  0))
 		(loop (progn (setq ticks (get-internal-run-time))
 			(sb-thread:with-mutex (*cg-run-lock*)
-					(loop for obj in *cg-box*
-						do (let ((fi (nth 0 obj))
-							(la (nth 1 obj)))
-						(if (= 0 la)
-							(progn
-								(cg-lock fi)
-								(cg-evaluate fi)
-								(setf la (cg-interval fi))
-								(cg-unlock fi))
-							(setf la (- la 1)))
-						)))
+				(loop for obj in *cg-box*
+					do (let ((fi (nth 0 obj))
+						(la (nth 1 obj)))
+					(if (= 0 la)
+						(progn
+							(cg-lock fi)
+							(cg-evaluate fi)
+							(setf la (cg-interval fi))
+							(cg-unlock fi))
+						(setf la (- la 1)))
+					)))
 
 			(let ((time (- (get-internal-run-time) ticks)))
 				(if (< time (* *proc-jump* *itups*))

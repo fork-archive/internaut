@@ -6,11 +6,11 @@
 (require :sb-posix)
 
 (defun internaut-load ()
-  (flet ((recursive-load (dir) 
-    (loop for i in (directory (concatenate 'string dir "/*.lisp"))
-      do(load i))
-    (loop for i in (directory (concatenate 'string dir "/*/"))
-      do (recursive-load (native-namestring i)))))
+	(flet ((recursive-load (dir) 
+		(loop for i in (directory (concatenate 'string dir "/*.lisp"))
+			do(load i))
+		(loop for i in (directory (concatenate 'string dir "/*/"))
+			do (recursive-load (native-namestring i)))))
 
 ;Load *grams
 (load "rsrc/config.lisp")
@@ -38,6 +38,6 @@
 (load "rsrc/main.lisp")))
 
 (sb-thread:make-thread (lambda ()
-(internaut-load)
-(main)
-(config-save *internaut-config*)))
+	(internaut-load)
+	(main)
+	(config-save *internaut-config*)))

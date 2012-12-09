@@ -1,7 +1,7 @@
 (defclass visualgram (clispgram)
-((vao :initform (gl:gen-vertex-array))
+(vao
   draw-mode
-  (vbo :initform (first (gl:gen-buffers 1))) 
+  vbo
   (count :initform 0)
   (update :initform nil)
   data))
@@ -15,6 +15,9 @@
 ;(gl:draw-elements (slot-value object 'draw-mode) (slot-value object 'vao)))
 
 (defmethod cg-init :before ((object visualgram))
+(setf (slot-value object 'vao) (gl:gen-vertex-array))
+(setf (slot-value object 'vbo) (first (gl:gen-buffers 1)))
+
 (setf (slot-value object 'data) (make-array 0 :fill-pointer t :adjustable t  :element-type 'float))
  
 (gl:bind-vertex-array (slot-value object 'vao))

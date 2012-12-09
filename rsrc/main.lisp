@@ -2,9 +2,9 @@
 (defparameter *frame-rate* 160)
 (defparameter *itups* internal-time-units-per-second)
 
-(defvar *insert-box* '())
-(defvar *insert-box-lock* (sb-thread:make-mutex :name "pickyou"))
-"This is locked by the GL loop. In order to modify the list, we must lock this mutex."
+(defparameter *insert-box* '())
+(defparameter *insert-box-lock* (sb-thread:make-mutex :name "pickyou"))
+;(:documentation "This is locked by the GL loop. In order to modify the list, we must lock this mutex."))
 
 (defvar *modelview-matrix*)
 (defvar *projection-matrix*)
@@ -168,12 +168,11 @@
       (:idle ()
 
         ; FIX ME LATER -- DOES NOT TIME OUT!
-        (sb-thread:with-mutex (*insert-box-lock*)
-          (if *insert-box*
+        (if *insert-box*
+          (sb-thread:with-mutex (*insert-box-lock*)
             (progn
               (loop for item in *insert-box*
                 do(progn
-                  (print (slot-value item 'name))
                   (cg-lock item)
                   (add-to-cg-box item)
                   (cg-unlock item))
