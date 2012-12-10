@@ -21,7 +21,6 @@
     (setf *insert-box* (append *insert-box* (list object)))))
 
 (defun draw ()
-
   (gl:uniform-matrix *projectm* 4 (vector *projection-matrix*))
   (gl:uniform-matrix *modelviewm* 4 (vector *modelview-matrix*))
 
@@ -134,7 +133,7 @@
   (init-gl)
   (init-shaders)
 
-  (add-to-cg-box (make-instance 'testgram))
+  ;(add-to-cg-box (make-instance 'testgram))
 
   (set-key-press :sdl-key-w (lambda () (player-start-move *player-location* 2 0)))
   (set-key-press :sdl-key-s (lambda () (player-start-move *player-location* 2 1)))
@@ -171,10 +170,15 @@
         ; FIX ME LATER -- DOES NOT TIME OUT!
         (sb-thread:with-mutex (*insert-box-lock*)
           (if *insert-box*
-            (progn 
+            (progn
               (loop for item in *insert-box*
-                do(add-to-cg-box item))
-              (setf *insert-box* nil))))
+                do(progn
+                  (print (slot-value item 'name))
+                  (cg-lock item)
+                  (add-to-cg-box item)
+                  (cg-unlock item))
+                (setf *insert-box* nil)))))
+
         (draw)
         (SDL:UPDATE-DISPLAY)))
     ;(with-mutex (*cg-run-lock*) (sb-thread:interrupt-thread thread (lambda () (proc-quit))))

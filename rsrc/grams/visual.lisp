@@ -53,4 +53,3 @@
 (setf (slot-value object 'data) (vcoerce-singlef vec))
 (setf (slot-value object 'update) t))
 ;(print vec))
-;;------------------------------
