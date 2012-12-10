@@ -37,7 +37,7 @@
 
 (load "rsrc/main.lisp")))
 
-(sb-thread:make-thread (lambda ()
+;(sb-thread:make-thread (lambda ()
 	(internaut-load)
 	(main)
-	(config-save *internaut-config*)))
+	(config-save *internaut-config*);))
