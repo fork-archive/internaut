@@ -18,7 +18,7 @@
 (setf (slot-value object 'vao) (gl:gen-vertex-array))
 (setf (slot-value object 'vbo) (first (gl:gen-buffers 1)))
 
-(setf (slot-value object 'data) (make-array 0 :fill-pointer t :adjustable t  :element-type 'float))
+(setf (slot-value object 'data) (make-array 0 :fill-pointer t :adjustable t  :element-type 'single-float))
  
 (gl:bind-vertex-array (slot-value object 'vao))
 (gl:bind-buffer :array-buffer (slot-value object 'vbo))

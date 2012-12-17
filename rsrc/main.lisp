@@ -133,8 +133,8 @@
   (init-gl)
   (init-shaders)
 
-  ;(add-to-cg-box (make-instance 'testgram))
-  (add-to-cg-box (make-instance 'ROCHEGRAM))
+  (add-to-cg-box (make-instance 'testgram))
+  ;(add-to-cg-box (make-instance 'ROCHEGRAM))
 
   (set-key-press :sdl-key-w (lambda () (player-start-move *player-location* 2 0)))
   (set-key-press :sdl-key-s (lambda () (player-start-move *player-location* 2 1)))
