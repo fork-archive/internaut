@@ -13,7 +13,7 @@
 (defgeneric config-set (object str val)
 	(:documentation "Sets the given value for the given string"))
 
-(defmethod config-init ((object config) &key (location file))
+(defmethod config-init ((object config) &key location)
 	(let ((inf (open location)))
 		(if inf
 			(loop for i in (read inf)

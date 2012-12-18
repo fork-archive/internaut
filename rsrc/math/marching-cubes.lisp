@@ -1,4 +1,4 @@
-;; An XYZ is a 3D point.  We save a couple bytes by just making it a
+#| ;; An XYZ is a 3D point.  We save a couple bytes by just making it a
 ;; vector.
 
 (defstruct (xyz (:type vector))
@@ -436,3 +436,4 @@
                   (when tris
                     (setq triangles (nconc tris triangles))))))))
         triangles))))
+ |#

@@ -4,13 +4,16 @@
 ;(defmacro lname (a b)
 ;  `(b (slot-value a b))) 
 
-(defun coerce-vfloat(vec)
+(defun coerce-sequence (ctype seq)
+  (map (class-of seq) (lambda (a) (coerce a ctype)) seq))
+
+(defun coerce-vfloat (vec)
 (map 'vector (lambda (num) (coerce num 'float)) vec))
 
-(defun coerce-singlef(lst)
+(defun coerce-singlef (lst)
 (mapcar (lambda (a) (coerce a 'single-float)) lst))
 
-(defun vcoerce-singlef(vst)
+(defun vcoerce-singlef (vst)
 (map 'vector (lambda (a) (coerce a 'single-float)) vst))
 
 (defun vertex-list-to-gl-array(list)
@@ -22,15 +25,6 @@
 			       (setf (gl:glaref alpha i 'z) (nth (+ (* i 3) 2) lst))
 			       )
 		     finally (return alpha))))
-
-(defun seq-sub-glbuf(vec type &key (offset 0) (size (length vec)))
-(gl:with-mapped-buffer (p :array-buffer :write-only)
-  (loop for i from offset below size
-      do (setf (cffi:mem-aref p type i) (aref vec i)))))
-
-(defun seq-to-glbuf(vec type &key (draw :dynamic-draw))
-(%gl:buffer-data :array-buffer (* (length vec) (cffi:foreign-type-size type)) (cffi:null-pointer) draw)
-(seq-sub-glbuf vec type))
 
 (defun list-to-gl-array(type list)
   (let ((alpha (gl:alloc-gl-array type (length list))))

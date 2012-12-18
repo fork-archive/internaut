@@ -3,7 +3,7 @@
 (defparameter *itups* internal-time-units-per-second)
 
 (defparameter *insert-box* '())
-(defparameter *insert-box-lock* (sb-thread:make-mutex :name "pickyou"))
+(defparameter *insert-box-lock* (bordeaux-threads:make-lock))
 ;(:documentation "This is locked by the GL loop. In order to modify the list, we must lock this mutex."))
 
 (defvar *modelview-matrix*)
@@ -17,7 +17,7 @@
 (defvar *colourm*)
 
 (defun insert-clispgram (object)
-  (sb-thread:with-mutex (*insert-box-lock*)
+  (bordeaux-threads:with-lock-held (*insert-box-lock*)
     (setf *insert-box* (append *insert-box* (list object)))))
 
 (defun draw ()
@@ -29,7 +29,7 @@
 
   (cg-evaluate *player-location*)
 
-  (sb-thread:with-mutex (*cg-box-lock*)
+  (bordeaux-threads:with-lock-held (*cg-box-lock*)
     (loop for obj in *cg-box*
      do (progn
        (cg-lock (nth 0 obj))
@@ -115,8 +115,9 @@
  )
 
 (defun clean-all ()
-  (sb-thread:release-mutex *cg-box-lock*)
-  (sb-thread:release-mutex *cg-run-lock*)
+  (bordeaux-threads:release-lock *insert-box-lock*)
+  (bordeaux-threads:release-lock *cg-box-lock*)
+  (bordeaux-threads:release-lock *cg-run-lock*)
   (loop for obj in *cg-box* do (cg-clean (nth 0 obj)))
   (sdl:quit-sdl)
 
@@ -157,7 +158,7 @@
   (set-key-press :sdl-key-f11 (lambda () (toggle-fullscreen)))
   (set-key-press :sdl-key-escape (lambda () (sdl:push-quit-event)))
 
-  (let ((thread (sb-thread:make-thread 'proc-loop)))
+  (let ((thread (bordeaux-threads:make-thread 'proc-loop)))
 
     (SETF (SDL:FRAME-RATE) *frame-rate*)
     (SDL:WITH-EVENTS (:POLL)  
@@ -170,7 +171,7 @@
 
         ; FIX ME LATER -- DOES NOT TIME OUT!
         (if *insert-box*
-          (sb-thread:with-mutex (*insert-box-lock*)
+          (bordeaux-threads:with-lock-held (*insert-box-lock*)
             (progn
               (loop for item in *insert-box*
                 do(progn
@@ -181,9 +182,9 @@
 
         (draw)
         (SDL:UPDATE-DISPLAY)))
-    ;(with-mutex (*cg-run-lock*) (sb-thread:interrupt-thread thread (lambda () (proc-quit))))
+    ;(with-lock-held (*cg-run-lock*) (bordeaux-threads:interrupt-thread thread (lambda () (proc-quit))))
 
     (format t "waiting for lock ... ")
-    (sb-thread:with-mutex (*cg-run-lock*) (sb-thread:terminate-thread thread))
+    (bordeaux-threads:with-lock-held (*cg-run-lock*) (bordeaux-threads:destroy-thread thread))
     (format t "done~%")
     (clean-all)))

@@ -1,6 +1,6 @@
 (defclass clispgram (STANDARD-OBJECT)
 	((interval :initarg :interval :initform 1)
-		(objlock :initform (sb-thread:make-mutex :name "objlock"))
+		(objlock :initform (bordeaux-threads:make-lock))
 		(name :initarg :name :initform "clispgram")))
 
 (defgeneric cg-init (object)
@@ -28,13 +28,13 @@
 (defmethod cg-interval ((object clispgram))
 	(slot-value object 'interval))
 (defmethod cg-clean ((object clispgram))
-	(sb-thread:release-mutex (slot-value object 'objlock)))
+	(bordeaux-threads:release-lock (slot-value object 'objlock)))
 
 (defmethod cg-lock ((object clispgram))
-	(sb-thread:grab-mutex (slot-value object 'objlock)))
+	(bordeaux-threads:acquire-lock (slot-value object 'objlock)))
 (defmethod cg-unlock ((object clispgram))
-	(sb-thread:release-mutex (slot-value object 'objlock)))
+	(bordeaux-threads:release-lock (slot-value object 'objlock)))
 (defmethod cg-scoped-lock ((object clispgram) function)
-	(sb-thread:with-mutex ((slot-value object 'objlock)) function))
+	(bordeaux-threads:with-lock-held ((slot-value object 'objlock)) function))
 
 (defmethod cg-visualize ((object clispgram))())

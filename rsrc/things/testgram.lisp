@@ -4,8 +4,9 @@
 
 (defmethod cg-init ((object testgram))
 	(let ((alpha (coerce (plasma-fractal 0 0 128 128 (- 10 (random 20)) (- 10 (random 20)) (- 10 (random 20)) (- 10 (random 20)) 0 15 .5) 'vector)))
-		(vg-load-vec object alpha)))
+		(vg-load-vert object alpha)))
 (defmethod cg-evaluate ((object testgram)))
+
 #|
 (setf (slot-value object 'ticks) (1+ (slot-value object 'ticks)))
 (if (> (slot-value object 'ticks) 2)
