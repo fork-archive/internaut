@@ -115,9 +115,10 @@
  )
 
 (defun clean-all ()
-  (bordeaux-threads:release-lock *insert-box-lock*)
-  (bordeaux-threads:release-lock *cg-box-lock*)
-  (bordeaux-threads:release-lock *cg-run-lock*)
+  (setf *insert-box-lock* (bordeaux-threads:make-lock))
+  (setf *cg-box-lock* (bordeaux-threads:make-lock))
+  (setf *cg-run-lock* (bordeaux-threads:make-lock))
+
   (loop for obj in *cg-box* do (cg-clean (nth 0 obj)))
   (sdl:quit-sdl)
 

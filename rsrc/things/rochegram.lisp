@@ -1,4 +1,4 @@
-(ql:quickload "femlisp")
+#| (ql:quickload "femlisp")
 (ql:quickload "femlisp-matlisp")
 
 (defstruct monad location mass velocity)
@@ -42,7 +42,7 @@
 		(setf (monad-velocity mon) (fl.matlisp:m+ (monad-velocity mon) vdelta))))
 	(loop for mon in (slot-value object 'monads)
 		do(let ((new-location (fl.matlisp:m+ (fl.matlisp:scal *time-step* (monad-velocity mon)) (monad-location mon))))
-		 (if (loop for mon2 in (slot-value object 'monads)
+			(if (loop for mon2 in (slot-value object 'monads)
 				;Could cause problems...
 				with noc = t
 				do(if (and (<= (abs (fl.matlisp:norm (fl.matlisp:m- new-location (monad-location mon2)))) *radius*) (not (fl.matlisp:mequalp (monad-location mon) (monad-location mon2))))
@@ -63,4 +63,4 @@ finally(return noc))
 (defmethod cg-visualize ((object rochegram))
 	(vg-load-vec object (coerce (loop for mon in (slot-value object 'monads)
 		append(loop for i below 3 collect (fl.matlisp:mref (monad-location mon) i 0))) 'vector))
-	(call-next-method))
+	(call-next-method)) |#

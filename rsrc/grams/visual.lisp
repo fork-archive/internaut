@@ -27,7 +27,7 @@
   (setf (slot-value object 'vertex-buffer) (first (gl:gen-buffers 1)))
   (setf (slot-value object 'index-buffer) (first (gl:gen-buffers 1)))
   (setf (slot-value object 'normal-buffer) (first (gl:gen-buffers 1)))
-  (setf (slot-value object 'texture-buffer) (first (gl:gen-buffers 1)))
+  (setf (slot-value object 'texture-buffer) (first (gl:gen-textures 1)))
 
   (gl:bind-vertex-array (slot-value object 'vao))
   (gl:bind-buffer :array-buffer (slot-value object 'vertex-buffer))
@@ -36,7 +36,7 @@
   (gl:bind-vertex-array 0))
 
 (defmethod cg-clean ((object visualgram))
-  (gl:delete-buffers (list (slot-value object 'vertex-buffer)))
+  (gl:delete-buffers (list (slot-value object 'vertex-buffer) (slot-value object 'index-buffer) (slot-value object 'normal-buffer)))
   (gl:delete-vertex-arrays (list (slot-value object 'vao)))
   (call-next-method))
 
@@ -50,9 +50,22 @@
       (setf (slot-value object 'count) (length (slot-value object 'vertex-data)))
 
       (setf (slot-value object 'vertex-update) nil)))
+
   (if (slot-value object 'index-update) 1)
+
   (if (slot-value object 'normal-update) 1)
-  (if (slot-value object 'texture-update) 1)
+
+  (if (slot-value object 'texture-update)
+    (progn
+      (gl:bind-texture :array-buffer (slot-value object 'vertex-buffer))
+      (seq-to-glbuf (coerce-sequence 'single-float (slot-value object 'vertex-data)) :float)
+      (gl:bind-buffer :array-buffer 0)
+
+      (setf (slot-value object 'count) (length (slot-value object 'vertex-data)))
+
+      (setf (slot-value object 'vertex-update) nil)))
+
+
   (gl:bind-vertex-array (slot-value object 'vao))
   (call-next-method)
   (gl:draw-arrays (slot-value object 'draw-mode) 0 (slot-value object 'count))

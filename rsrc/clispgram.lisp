@@ -28,7 +28,7 @@
 (defmethod cg-interval ((object clispgram))
 	(slot-value object 'interval))
 (defmethod cg-clean ((object clispgram))
-	(bordeaux-threads:release-lock (slot-value object 'objlock)))
+	(setf (slot-value object 'objlock) (bordeaux-threads:make-lock)))
 
 (defmethod cg-lock ((object clispgram))
 	(bordeaux-threads:acquire-lock (slot-value object 'objlock)))
@@ -37,4 +37,4 @@
 (defmethod cg-scoped-lock ((object clispgram) function)
 	(bordeaux-threads:with-lock-held ((slot-value object 'objlock)) function))
 
-(defmethod cg-visualize ((object clispgram))())
+(defmethod cg-visualize ((object clispgram)))
