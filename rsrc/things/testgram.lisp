@@ -1,4 +1,4 @@
-(defclass testgram (visualgram)
+(defclass testgram (vg-vertex)
 	((time :initform 0)
 		(ticks :initform 0)))
 
