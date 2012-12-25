@@ -5,25 +5,25 @@
 
 (defclass vg-vertex (visualgram)
   ((vertex-data :initform nil)
-    vertex-buffer
-
-    (vertex-update :initform nil)))
+   vertex-buffer
+   
+   (vertex-update :initform nil)))
 
 (defclass vg-texture (visualgram)
   ((texcoord-data :initform nil)
-    texcoord-buffer
-    (texture-data :initform nil)
-    texture-buffer
-
-    (texture-update :initform nil)))
+   texcoord-buffer
+   (texture-data :initform nil)
+   texture-buffer
+   
+   (texture-update :initform nil)))
 
 (defclass vg-normal (visualgram)
   ((index-data :initform nil)
-    index-buffer
-    (normal-data :initform nil)
-    normal-buffer
-
-    (normal-update :initform nil)))
+   index-buffer
+   (normal-data :initform nil)
+   normal-buffer
+   
+   (normal-update :initform nil)))
 
 ;;cg-init
 (defmethod cg-init :around ((object visualgram))
@@ -75,10 +75,10 @@
   (call-next-method))
 
 #| (defmethod cg-visualize :around ((object vg-texture))
-  (if (slot-value object 'texture-update)
-    (progn
-      (gl:)))
-  (call-next-method)) |#
+ (if (slot-value object 'texture-update)
+   (progn
+     (gl:)))
+ (call-next-method)) |#
 
 (defmethod cg-visualize :around ((object visualgram))
   (gl:bind-vertex-array (slot-value object 'vao))
@@ -114,8 +114,8 @@
 
 (defun seq-sub-glbuf(vec type &key (offset 0) (size (length vec)))
   (gl:with-mapped-buffer (p :array-buffer :write-only)
-    (loop for i from offset below size
-      do (setf (cffi:mem-aref p type i) (aref vec i)))))
+   (loop for i from offset below size
+     do (setf (cffi:mem-aref p type i) (aref vec i)))))
 
 (defun seq-to-glbuf(vec type &key (draw :dynamic-draw))
   (%gl:buffer-data :array-buffer (* (length vec) (cffi:foreign-type-size type)) (cffi:null-pointer) draw)
