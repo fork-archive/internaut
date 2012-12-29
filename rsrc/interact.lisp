@@ -16,7 +16,7 @@
 (defvar *forward* 0)
 (defvar *backward* 1)
 (defvar *left* 2)
-(defvar *right 3)
+(defvar *right* 3)
 
 (defmethod cg-evaluate ((object player-location))
   (let* ((xrot (slot-value object 'xrot))
