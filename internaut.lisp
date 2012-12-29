@@ -1,6 +1,4 @@
-(ql:quickload "cl-opengl")
-(ql:quickload "lispbuilder-sdl")
-(ql:quickload "bordeaux-threads")
+(ql:quickload '("cl-opengl" "bordeaux-threads" "lispbuilder-sdl" "lispbuilder-sdl-ttf" "lispbuilder-sdl-image"))
 
 (defparameter *config-default* "rsrc/otterconf")
 (defparameter *internaut-config* nil)
