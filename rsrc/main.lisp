@@ -27,6 +27,9 @@
   (gl:clear-color .15 .15 .15 1.0)
   (gl:clear :color-buffer-bit :depth-buffer-bit)
 
+  (gl:enable :blend)
+  (gl:blend-func :src-alpha :one-minus-src-alpha)
+
   (cg-evaluate *player-location*)
 
   (bordeaux-threads:with-lock-held (*cg-box-lock*)
@@ -41,8 +44,7 @@
 (defun init-window (fullscreen width height)
   "Create an SDL OpenGL surface."
   (SDL:WINDOW width height :FULLSCREEN nil :TITLE-CAPTION "BOX" :ICON-CAPTION "BOX" :DOUBLE-BUFFER T :POSITION T :OPENGL T)
-  (reshape-window width height)
-  )
+  (reshape-window width height))
 
 (defun reshape-window (width height)
   (gl:viewport 0 0 width height)
@@ -52,8 +54,7 @@
   ;(gl:matrix-mode :projection)
   ;(gl:load-identity)
   (setf *modelview-matrix* (mvec 16 1))
-  (setf *projection-matrix* (glm-perspective 45 (/ width height) 1e-10 10))
-  )
+  (setf *projection-matrix* (glm-perspective 45 (/ width height) 1e-10 10)))
 
 (defun toggle-fullscreen ()
   (if (cgi 'fullscreen)
@@ -90,7 +91,9 @@
   ;(gl:attach-shader shaderprogram gs)
   
   (gl:bind-attrib-location shaderprogram 0 "in_position")
-  (gl:bind-attrib-location shaderprogram 1 "in_color")
+  (gl:bind-attrib-location shaderprogram 1 "in_coord")
+  (gl:bind-attrib-location shaderprogram 2 "in_norm")
+  (gl:bind-attrib-location shaderprogram 3 "in_color")
 
   (gl:link-program shaderprogram)
   (gl:use-program shaderprogram)
@@ -111,8 +114,7 @@
  (gl:fog :fog-density 1)
  (gl:fog :fog-start 10.0)
  (gl:fog :fog-end 5)
- (gl:enable :fog)
- )
+ (gl:enable :fog))
 
 (defun clean-all ()
   (setf *insert-box-lock* (bordeaux-threads:make-lock))
@@ -136,16 +138,16 @@
   (init-shaders)
 
   (add-to-cg-box (make-instance 'testgram))
-  ;(add-to-cg-box (make-instance 'ROCHEGRAM))
+  (add-to-cg-box (make-instance 'texturegram))
 
   (set-key-press :sdl-key-w (lambda () (player-start-move *player-location* 2 0)))
-  (set-key-press :sdl-key-s (lambda () (player-start-move *player-location* 2 1)))
+  (set-key-press :sdl-key-r (lambda () (player-start-move *player-location* 2 1)))
   (set-key-press :sdl-key-a (lambda () (player-start-move *player-location* 2 2)))
-  (set-key-press :sdl-key-d (lambda () (player-start-move *player-location* 2 3)))
+  (set-key-press :sdl-key-s (lambda () (player-start-move *player-location* 2 3)))
   (set-key-release :sdl-key-w (lambda () (player-stop-move *player-location* 0)))
-  (set-key-release :sdl-key-s (lambda () (player-stop-move *player-location* 1)))
+  (set-key-release :sdl-key-r (lambda () (player-stop-move *player-location* 1)))
   (set-key-release :sdl-key-a (lambda () (player-stop-move *player-location* 2)))
-  (set-key-release :sdl-key-d (lambda () (player-stop-move *player-location* 3)))
+  (set-key-release :sdl-key-s (lambda () (player-stop-move *player-location* 3)))
 
   (set-key-press :sdl-key-left (lambda () (player-start-rotate *player-location* -1 1)))
   (set-key-press :sdl-key-right (lambda () (player-start-rotate *player-location* 1 1)))

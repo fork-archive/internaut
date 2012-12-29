@@ -12,7 +12,7 @@
 	`(config-set *internaut-config* ,var ,val))
 
 (defun internaut-load ()
-	(flet ((recursive-load (dir) 
+	(labels ((recursive-load (dir) 
 		(loop for i in (directory (concatenate 'string dir "/*.lisp"))
 			do(load i))
 		(loop for i in (directory (concatenate 'string dir "/*/"))
@@ -33,9 +33,11 @@
 	(load "rsrc/proc.lisp")
 	(recursive-load "rsrc/things")
 
+	(load "rsrc/resource.lisp")
+
 	(load "rsrc/main.lisp")))
 
- (bordeaux-threads:make-thread (lambda ()
+ ;(bordeaux-threads:make-thread (lambda ()
 	(internaut-load)
 	(main)
-	(config-save *internaut-config*)))
+	(config-save *internaut-config*);))
