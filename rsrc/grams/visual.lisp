@@ -1,6 +1,6 @@
 (defclass visualgram (clispgram)
   (vao
-    (draw-mode :initform :points)
+    (draw-mode :initform :lines)
     (count :initform 0)))
 
 (defclass vg-vertex (visualgram)
@@ -52,7 +52,23 @@
 
 (defmethod cg-init :before ((object vg-normal))
   (setf (slot-value object 'index-buffer) (car (gl:gen-buffers 1)))
-  (setf (slot-value object 'normal-buffer) (car (gl:gen-buffers 1))))
+  (setf (slot-value object 'normal-buffer) (car (gl:gen-buffers 1)))
+  (gl:bind-vertex-array (slot-value object 'vao))
+  (gl:bind-buffer :array-buffer (slot-value object 'index-buffer))
+  (gl:enable-vertex-attrib-array 2)
+  (gl:vertex-attrib-pointer 2 1 :float nil 0 (cffi:null-pointer))
+  (gl:bind-buffer :array-buffer (slot-value object 'normal-buffer))
+  (gl:enable-vertex-attrib-array 3)
+  (gl:vertex-attrib-pointer 3 3 :float nil 0 (cffi:null-pointer))
+  (gl:bind-vertex-array 0))
+
+(defmethod cg-init :before ((object vg-color))
+  (setf (slot-value object 'color-buffer) (car (gl:gen-buffers 1)))
+  (gl:bind-vertex-array (slot-value object 'vao))
+  (gl:bind-buffer :array-buffer (slot-value object 'color-buffer))
+  (gl:enable-vertex-attrib-array 3)
+  (gl:vertex-attrib-pointer 2 3 :float nil 0 (cffi:null-pointer))
+  (gl:bind-vertex-array 0))
 
 ;;cg-clean
 (defmethod cg-clean ((object visualgram))

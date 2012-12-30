@@ -92,8 +92,9 @@
   
   (gl:bind-attrib-location shaderprogram 0 "in_position")
   (gl:bind-attrib-location shaderprogram 1 "in_coord")
-  (gl:bind-attrib-location shaderprogram 2 "in_norm")
-  (gl:bind-attrib-location shaderprogram 3 "in_color")
+  (gl:bind-attrib-location shaderprogram 2 "in_index")
+  (gl:bind-attrib-location shaderprogram 3 "in_norm")
+  (gl:bind-attrib-location shaderprogram 4 "in_color")
 
   (gl:link-program shaderprogram)
   (gl:use-program shaderprogram)
