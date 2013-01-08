@@ -1,127 +1,73 @@
 (defclass visualgram (clispgram)
   (vao
-    (draw-mode :initform :lines)
+    (draw-mode :initform :points)
     (count :initform 0)))
 
-(defclass vg-vertex (visualgram)
-  (vertex-data 
-   vertex-buffer
-   (vertex-update :initform nil)))
+(defmacro vg-component (name gl-index gl-count)
+  (let ((class (intern (concatenate 'string "VG-" name)))
+    (data (intern (concatenate 'string "DATA-" name)))
+    (buffer (intern (concatenate 'string "BUFFER-" name))) 
+    (update (intern (concatenate 'string "UPDATE-" name))))
+
+  `(progn   
+
+    (defclass ,class (visualgram)
+      (,data 
+       ,buffer
+       (,update :initform nil)))
+
+    (defmethod cg-init :before ((object ,class))
+      (setf (slot-value object ',buffer) (car (gl:gen-buffers 1)))
+      (gl:bind-vertex-array (slot-value object 'vao))
+      (gl:bind-buffer :array-buffer (slot-value object ',buffer))
+      (gl:enable-vertex-attrib-array ,gl-index)
+      (gl:vertex-attrib-pointer ,gl-index ,gl-count :float nil 0 (cffi:null-pointer))
+      (gl:bind-vertex-array 0))
+
+    (defmethod cg-visualize :around ((object ,class))
+      (if (slot-value object ',update)
+        (progn
+          (gl:bind-buffer :array-buffer (slot-value object ',buffer))
+          (seq-to-glbuf (coerce-sequence 'single-float (slot-value object ',data)) :float)
+          (gl:bind-buffer :array-buffer 0)
+          (setf (slot-value object 'count) (length (slot-value object ',data)))
+          (setf (slot-value object ',update) nil)))
+      ,(if (string= name "COLOR")
+        '(%gl:uniform-1i *color* 1)
+        '(%gl:uniform-1i *color* 0))
+      (call-next-method))
+
+    (defmethod cg-clean ((object ,class))
+      (gl:delete-buffers (list (slot-value object ',buffer)))
+      (call-next-method)))))
+
+(vg-component "VERTEX" 0 3)
+(vg-component "TEXCOORD" 1 2)
+(vg-component "INDEX" 2 1)
+(vg-component "NORMAL" 3 3)
+(vg-component "COLOR" 4 3)
 
 (defclass vg-texture (visualgram)
-  (texcoord-data
-   texcoord-buffer
-   (texcoord-update :initform nil)
-
-   texture-path
+  (texture-path
+    texture-id
    (texture-type :initform :texture-2d)
    (texture-update :initform nil)))
-
-(defclass vg-normal (visualgram)
-  (index-data
-   index-buffer
-   normal-data
-   normal-buffer
-   (normal-update :initform nil)))
-
-(defclass vg-color (visualgram)
-  (color-data
-   color-buffer
-   (color-update :initform nil)))
 
 ;;cg-init
 (defmethod cg-init :around ((object visualgram))
   (setf (slot-value object 'vao) (gl:gen-vertex-array))
   (call-next-method))
 
-(defmethod cg-init :before ((object vg-vertex))
-  (setf (slot-value object 'vertex-buffer) (car (gl:gen-buffers 1)))
-  (gl:bind-vertex-array (slot-value object 'vao))
-  (gl:bind-buffer :array-buffer (slot-value object 'vertex-buffer))
-  (gl:enable-vertex-attrib-array 0)
-  (gl:vertex-attrib-pointer 0 3 :float nil 0 (cffi:null-pointer))
-  (gl:bind-vertex-array 0))
-
-(defmethod cg-init :before ((object vg-texture))
-  (setf (slot-value object 'texcoord-buffer) (car (gl:gen-buffers 1)))
-  (gl:bind-vertex-array (slot-value object 'vao))
-  (gl:bind-buffer :array-buffer (slot-value object 'texcoord-buffer))
-  (gl:enable-vertex-attrib-array 1)
-  (gl:vertex-attrib-pointer 1 2 :float nil 0 (cffi:null-pointer))
-  (gl:bind-vertex-array 0))
-
-(defmethod cg-init :before ((object vg-normal))
-  (setf (slot-value object 'index-buffer) (car (gl:gen-buffers 1)))
-  (setf (slot-value object 'normal-buffer) (car (gl:gen-buffers 1)))
-  (gl:bind-vertex-array (slot-value object 'vao))
-  (gl:bind-buffer :array-buffer (slot-value object 'index-buffer))
-  (gl:enable-vertex-attrib-array 2)
-  (gl:vertex-attrib-pointer 2 1 :float nil 0 (cffi:null-pointer))
-  (gl:bind-buffer :array-buffer (slot-value object 'normal-buffer))
-  (gl:enable-vertex-attrib-array 3)
-  (gl:vertex-attrib-pointer 3 3 :float nil 0 (cffi:null-pointer))
-  (gl:bind-vertex-array 0))
-
-(defmethod cg-init :before ((object vg-color))
-  (setf (slot-value object 'color-buffer) (car (gl:gen-buffers 1)))
-  (gl:bind-vertex-array (slot-value object 'vao))
-  (gl:bind-buffer :array-buffer (slot-value object 'color-buffer))
-  (gl:enable-vertex-attrib-array 3)
-  (gl:vertex-attrib-pointer 2 3 :float nil 0 (cffi:null-pointer))
-  (gl:bind-vertex-array 0))
-
 ;;cg-clean
 (defmethod cg-clean ((object visualgram))
   (gl:delete-vertex-arrays (list (slot-value object 'vao)))
   (call-next-method))
-(defmethod cg-clean ((object vg-vertex))
-  (gl:delete-buffers (list (slot-value object 'vertex-buffer)))
-  (call-next-method))
-(defmethod cg-clean ((object vg-normal))
-  (gl:delete-buffers (list (slot-value object 'index-buffer) (slot-value object 'normal-buffer)))
-  (call-next-method))
+
 (defmethod cg-clean ((object vg-texture))
   (unclaim-texture (slot-value object 'texture-path))
   (call-next-method))
 
 ;;cg-visualize
-(defmethod cg-visualize :around ((object vg-vertex))
-  (if (slot-value object 'vertex-update)
-    (progn
-      (gl:bind-buffer :array-buffer (slot-value object 'vertex-buffer))
-      (seq-to-glbuf (coerce-sequence 'single-float (slot-value object 'vertex-data)) :float)
-      (gl:bind-buffer :array-buffer 0)
-      (setf (slot-value object 'count) (length (slot-value object 'vertex-data)))
-      (setf (slot-value object 'vertex-update) nil)))
-  (call-next-method))
-
-(defmethod cg-visualize :around ((object vg-normal))
-  (if (slot-value object 'normal-update)
-    (progn
-      (gl:bind-buffer :array-buffer (slot-value object 'normal-buffer))
-      (seq-to-glbuf (coerce-sequence 'single-float (slot-value object 'normal-data)) :float)
-      (gl:bind-buffer :array-buffer 0)
-      ;(setf (slot-value object 'count) (length (slot-value object 'normal-data)))
-      ;setf (slot-value object 'normal-update) nil))
-    ))
-(call-next-method))
-
-(defmethod cg-visualize :around ((object vg-texture))
- (if (slot-value object 'texture-update)
-   (progn
-    (gl:bind-vertex-array (slot-value object 'vao))
-    (print (claim-texture (slot-value object 'texture-path)))
-    (gl:bind-texture (slot-value object 'texture-type) (claim-texture (slot-value object 'texture-path)))
-    (gl:bind-vertex-array 0)
-    (setf (slot-value object 'texture-update) nil)))
- (if (slot-value object 'texcoord-update)
-  (progn
-    (gl:bind-buffer :array-buffer (slot-value object 'texcoord-buffer))
-    (seq-to-glbuf (coerce-sequence 'single-float (slot-value object 'texcoord-data)) :float)
-    (gl:bind-buffer :array-buffer 0)
-    (setf (slot-value object 'texcoord-update) nil)))
- (call-next-method))
-
 (defmethod cg-visualize :around ((object visualgram))
   (gl:bind-vertex-array (slot-value object 'vao))
   (call-next-method)
@@ -129,34 +75,40 @@
   (gl:bind-vertex-array 0)
   (call-next-method))
 
-(defmethod vg-load-vert ((object vg-vertex) (vec vector))
-  (setf (slot-value object 'vertex-data) (make-array (length vec) :element-type 'single-float :initial-contents (coerce-sequence 'single-float vec)))
-  (setf (slot-value object 'vertex-update) t))
+(defmethod cg-visualize :around ((object vg-texture))
+ (if (slot-value object 'texture-update)
+   (progn
+    (setf (slot-value object 'texture-id) (claim-texture (slot-value object 'texture-path)))
+    (setf (slot-value object 'texture-update) nil)))
+ (gl:bind-texture (slot-value object 'texture-type) (slot-value object 'texture-id))
+ (call-next-method))
 
-(defmethod vg-load-ind ((object vg-texture) (vec vector))
-  (setf (slot-value object 'index-data) (make-array (length vec) :element-type 'single-float :initial-contents vec))
-  (setf (slot-value object 'index-update) t))
 
-(defmethod vg-load-norm ((object vg-normal) (vec vector))
-  (setf (slot-value object 'normal-data) (make-array (length vec) :element-type 'single-float :initial-contents vec))
-  (setf (slot-value object 'normal-update) t))
-
-(defmethod vg-load-coor ((object visualgram) (vec vector))
-  (setf (slot-value object 'texcoord-data) (make-array (length vec) :element-type 'single-float :initial-contents vec))
-  (setf (slot-value object 'texcoord-update) t))
-
-(defmethod vg-load-tex ((object visualgram) path)
-  (setf (slot-value object 'texture-path) path)
-  (setf (slot-value object 'texture-update) t))
-
-(defmethod vg-load-data ((object visualgram) (vert vector) &key ind norm tex)
-  (vg-load-vert object vert)
+(defmethod vg-load-data ((object visualgram) &key (vert nil) (ind nil) (norm nil) (coord nil) (tex nil) (color nil))
+  (if vert
+    (progn
+      (setf (slot-value object 'data-vertex) (make-array (length vert) :element-type 'single-float :initial-contents (coerce-sequence 'single-float vert)))
+      (setf (slot-value object 'update-vertex) t)))
   (if ind
-    (vg-load-ind object ind))
+    (progn
+      (setf (slot-value object 'data-index) (make-array (length ind) :element-type 'single-float :initial-contents (coerce-sequence 'single-float ind)))
+      (setf (slot-value object 'update-index) t)))
   (if norm
-    (vg-load-norm object ind))
+    (progn
+      (setf (slot-value object 'data-normal) (make-array (length norm) :element-type 'single-float :initial-contents (coerce-sequence 'single-float norm)))
+      (setf (slot-value object 'update-normal) t)))
+  (if coord
+    (progn
+      (setf (slot-value object 'data-texcoord) (make-array (length coord) :element-type 'single-float :initial-contents (coerce-sequence 'single-float coord)))
+      (setf (slot-value object 'update-texcoord) t)))
   (if tex
-    (vg-load-tex object ind)))
+    (progn
+      (setf (slot-value object 'texture-path) tex)
+      (setf (slot-value object 'texture-update) t)))
+  (if color
+    (progn
+      (setf (slot-value object 'data-color) (make-array (length color) :element-type 'single-float :initial-contents (coerce-sequence 'single-float color)))
+      (setf (slot-value object 'update-color) t))))
 
 (defun seq-sub-glbuf(vec type &key (offset 0) (size (length vec)))
   (gl:with-mapped-buffer (p :array-buffer :write-only)

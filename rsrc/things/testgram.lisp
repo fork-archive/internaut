@@ -1,10 +1,10 @@
-(defclass testgram (vg-vertex)
+(defclass testgram (vg-vertex vg-color)
 	((time :initform 0)
 		(ticks :initform 0)))
 
 (defmethod cg-init ((object testgram))
 	(let ((alpha (coerce (plasma-fractal 0 0 128 128 (- 10 (random 20)) (- 10 (random 20)) (- 10 (random 20)) (- 10 (random 20)) 0 15 .5) 'vector)))
-		(vg-load-vert object alpha)))
+		(vg-load-data object :vert alpha :color (coerce (loop for i below (length alpha) collect (random 1.0)) 'vector))))
 
  (defmethod cg-evaluate ((object testgram)))
 

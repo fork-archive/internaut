@@ -1,5 +1,5 @@
 (defparameter *proc-jump* 0.01)
-(defparameter *frame-rate* 160)
+(defparameter *frame-rate* 60)
 (defparameter *itups* internal-time-units-per-second)
 
 (defparameter *insert-box* '())
@@ -37,13 +37,23 @@
      do (progn
        (cg-lock (nth 0 obj))
        (cg-visualize (nth 0 obj))
-       (cg-unlock (nth 0 obj)))))
+       (cg-unlock (nth 0 obj))))
+
+    (%gl:uniform-1i *gui* 1)
+
+    (loop for obj in *cg-box-2d*
+     do (progn
+       (cg-lock (nth 0 obj))
+       (cg-visualize (nth 0 obj))
+       (cg-unlock (nth 0 obj))))
+
+    (%gl:uniform-1i *gui* 0))
 
   (gl:flush))
 
 (defun init-window (fullscreen width height)
   "Create an SDL OpenGL surface."
-  (SDL:WINDOW width height :FULLSCREEN nil :TITLE-CAPTION "BOX" :ICON-CAPTION "BOX" :DOUBLE-BUFFER T :POSITION T :OPENGL T)
+  (SDL:WINDOW width height :FULLSCREEN nil :TITLE-CAPTION "BOX" :ICON-CAPTION "BOX" :DOUBLE-BUFFER T :POSITION T :OPENGL T :ASYNC-BLIT T)
   (reshape-window width height))
 
 (defun reshape-window (width height)
@@ -66,8 +76,8 @@
       (reshape-window (cgi 'fullscreen-width) (cgi 'fullscreen-height)))))
 
 (defun init-shaders ()
-  (let ((frags (load-file "rsrc/shaders/points.fs"))
-    (verts (load-file "rsrc/shaders/points.vs"))
+  (let ((frags (load-file "rsrc/shaders/points.frag"))
+    (verts (load-file "rsrc/shaders/points.vert"))
       ;(geos (load-file "rsrc/shaders/points.gs"))
       (fs (gl:create-shader :fragment-shader))
       (vs (gl:create-shader :vertex-shader))
@@ -84,10 +94,10 @@
 
   (format t (gl:get-shader-info-log fs))
   (format t (gl:get-shader-info-log vs))
- ;(format t (gl:get-shader-info-log gs))
+  ;(format t (gl:get-shader-info-log gs))
 
- (gl:attach-shader shaderprogram fs)
- (gl:attach-shader shaderprogram vs)
+  (gl:attach-shader shaderprogram fs)
+  (gl:attach-shader shaderprogram vs)
   ;(gl:attach-shader shaderprogram gs)
   
   (gl:bind-attrib-location shaderprogram 0 "in_position")
@@ -100,10 +110,14 @@
   (gl:use-program shaderprogram)
 
   (setf *modelviewm* (gl:get-uniform-location shaderprogram "modelviewmatrix"))
-  (setf *projectm* (gl:get-uniform-location shaderprogram "projectionmatrix"))))
+  (setf *projectm* (gl:get-uniform-location shaderprogram "projectionmatrix"))
+  (setf *gui* (gl:get-uniform-location shaderprogram "gui"))
+  (setf *color* (gl:get-uniform-location shaderprogram "color"))))
+
 
 (defun init-gl ()
  (gl:depth-func :lequal)
+ (gl:depth-mask t)
  (gl:enable :depth-test)
  (gl:clear-depth 1)
 
@@ -123,15 +137,19 @@
   (setf *cg-run-lock* (bordeaux-threads:make-lock))
 
   (loop for obj in *cg-box* do (cg-clean (nth 0 obj)))
+  (loop for obj in *cg-box-2d* do (cg-clean (nth 0 obj)))
+
   (sdl:quit-sdl)
 
   (setf *cg-box* nil)
+  (setf *cg-box-2d* nil)
   (setf /key-down-map/ nil)
   (setf /key-up-map/ nil))
 
 (defun main ()
   (format t "starting the reactor~%")
   (SDL:INIT-SDL :VIDEO T :AUDIO T)
+  (SDL:INITIALISE-DEFAULT-FONT)
   (if (cgi 'fullscreen)
     (init-window t (cgi 'fullscreen-width) (cgi 'fullscreen-height))
     (init-window nil (cgi 'window-width) (cgi 'window-height)))
@@ -139,6 +157,7 @@
   (init-shaders)
 
   (add-to-cg-box (make-instance 'testgram))
+  (add-to-cg-box (make-instance 'textgram) :2d t)
   (add-to-cg-box (make-instance 'texturegram))
 
   (set-key-press :sdl-key-w (lambda () (player-start-move *player-location* 2 0)))
@@ -185,6 +204,7 @@
                 (setf *insert-box* nil)))))
 
         (draw)
+
         (SDL:UPDATE-DISPLAY)))
     ;(with-lock-held (*cg-run-lock*) (bordeaux-threads:interrupt-thread thread (lambda () (proc-quit))))
 
