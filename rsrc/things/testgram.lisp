@@ -4,7 +4,12 @@
 
 (defmethod cg-init ((object testgram))
 	(let ((alpha (coerce (plasma-fractal 0 0 128 128 (- 10 (random 20)) (- 10 (random 20)) (- 10 (random 20)) (- 10 (random 20)) 0 15 .5) 'vector)))
-		(vg-load-data object :vert alpha :color (coerce (loop for i below (length alpha) collect (random 1.0)) 'vector))))
+		(vg-load-data object :vert alpha :color (coerce (loop for i below (length alpha) collect (random 1.0)) 'vector))
+		(loop repeat 30
+			with i
+			do (progn 
+				(setf i (random (/ (length alpha) 3)))
+				(insert-clispgram (make-instance 'treegram :location (list (aref alpha (* 3 i)) (aref alpha (+ 1 (* 3 i))) (aref alpha (+ 2 (* 3 i))))))))))
 
  (defmethod cg-evaluate ((object testgram)))
 

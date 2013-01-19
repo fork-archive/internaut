@@ -7,11 +7,11 @@
 	(setf (slot-value object 'draw-mode) :quads))
 ;    (setf (slot-value object 'count) 4))
 
-(defmethod cg-evaluate ((object textgram)) ())
+(defmethod cg-evaluate ((object textgram)) 
+	(setf (slot-value object 'num) (1+ (slot-value object 'num))))
 
 (defmethod cg-visualize ((object textgram))
 	(sdl:fill-surface-* 0 0 0 :a 0 :surface (slot-value object 'surface))
 	(sdl:blit-surface (sdl:render-string-solid (format nil "~S" (slot-value object 'num))) (slot-value object 'surface))
 	(update-texture (slot-value object 'surface) (slot-value object 'texture-path))
-	(setf (slot-value object 'num) (1+ (slot-value object 'num)))
 	(call-next-method))

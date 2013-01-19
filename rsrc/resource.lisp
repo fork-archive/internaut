@@ -6,9 +6,10 @@
 		(image (sdl:load-image path)))
 	(gl:bind-texture :texture-2d texture)
 	(gl:tex-parameter :texture-2d :texture-min-filter :linear)
-	(gl:tex-parameter :texture-2d :texture-wrap-s :repeat);
-	(gl:tex-parameter :texture-2d :texture-wrap-t :repeat);
+	(gl:tex-parameter :texture-2d :texture-wrap-s :repeat)
+	(gl:tex-parameter :texture-2d :texture-wrap-t :repeat)
 	(surface-to-texture image)
+	(sdl:free image)
 	(setf (gethash path *texture-hash*) (cons texture 1))
 	texture))
 (defun unload-texture (path)

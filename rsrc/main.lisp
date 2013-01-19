@@ -158,7 +158,9 @@
 
   (add-to-cg-box (make-instance 'testgram))
   (add-to-cg-box (make-instance 'textgram) :2d t)
-  (add-to-cg-box (make-instance 'texturegram))
+  ;(add-to-cg-box (make-instance 'texturegram))
+
+  ;(add-to-cg-box (make-instance 'treegram))
 
   (set-key-press :sdl-key-w (lambda () (player-start-move *player-location* 2 0)))
   (set-key-press :sdl-key-r (lambda () (player-start-move *player-location* 2 1)))
