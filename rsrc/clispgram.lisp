@@ -18,6 +18,8 @@
 	(:documentation "Unlocks an object from the calling thread. Must be used in conjunction with 'CG-LOCK"))
 (defgeneric cg-scoped-lock (object function)
 	(:documentation "Scope locks a call for an object. The function must be a predefined 'LAMBDA."))
+(defgeneric cg-scoped-timed-lock (object function)
+	(:documentation "Scope locks a call for an object. Will return t if successfully run, otherwise nil. The function must be a predefined 'LAMBDA."))
 
 (defgeneric cg-visualize (object)
 	(:documentation "Called by the OpenGL loop, this function directly utilizes the GL to display data"))
@@ -36,5 +38,13 @@
 	(bordeaux-threads:release-lock (slot-value object 'objlock)))
 (defmethod cg-scoped-lock ((object clispgram) function)
 	(bordeaux-threads:with-lock-held ((slot-value object 'objlock)) function))
+
+(defmethod cg-scoped-timed-lock ((object clispgram) function)
+	(if (bordeaux-threads:acquire-lock (slot-value object 'objlock) nil)
+		(progn 
+			(funcall function)
+			(bordeaux-threads:release-lock (slot-value object 'objlock))
+			t)
+		nil))
 
 (defmethod cg-visualize ((object clispgram)))

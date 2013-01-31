@@ -13,8 +13,8 @@
 
 (defvar *modelviewm*)
 (defvar *projectm*)
-(defvar *texturem*)
-(defvar *colourm*)
+(defvar *color*)
+(defvar *gui*)
 
 (defun insert-clispgram (object)
   (bordeaux-threads:with-lock-held (*insert-box-lock*)
@@ -33,20 +33,9 @@
   (cg-evaluate *player-location*)
 
   (bordeaux-threads:with-lock-held (*cg-box-lock*)
-    (loop for obj in *cg-box*
-     do (progn
-       (cg-lock (nth 0 obj))
-       (cg-visualize (nth 0 obj))
-       (cg-unlock (nth 0 obj))))
-
+    (mapcar (lambda (obj) (cg-scoped-timed-lock (car obj) #'(lambda () (cg-visualize (car obj))))) *cg-box*)
     (%gl:uniform-1i *gui* 1)
-
-    (loop for obj in *cg-box-2d*
-     do (progn
-       (cg-lock (nth 0 obj))
-       (cg-visualize (nth 0 obj))
-       (cg-unlock (nth 0 obj))))
-
+    (mapcar (lambda (obj) (cg-scoped-timed-lock (car obj) #'(lambda () (cg-visualize (car obj))))) *cg-box-2d*)
     (%gl:uniform-1i *gui* 0))
 
   (gl:flush))
@@ -136,8 +125,8 @@
   (setf *cg-box-lock* (bordeaux-threads:make-lock))
   (setf *cg-run-lock* (bordeaux-threads:make-lock))
 
-  (loop for obj in *cg-box* do (cg-clean (nth 0 obj)))
-  (loop for obj in *cg-box-2d* do (cg-clean (nth 0 obj)))
+  (loop for obj in *cg-box* do (cg-clean (car obj)))
+  (loop for obj in *cg-box-2d* do (cg-clean (car obj)))
 
   (sdl:quit-sdl)
 

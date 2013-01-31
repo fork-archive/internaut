@@ -16,29 +16,15 @@
 	(let ((ticks  0))
 		(loop (progn (setq ticks (get-internal-run-time))
 			(bordeaux-threads:with-lock-held (*cg-run-lock*)
-				(loop for obj in *cg-box*
-					do (let ((fi (nth 0 obj))
-						(la (nth 1 obj)))
-					(if (= 0 la)
-						(progn
-							(cg-lock fi)
-							(cg-evaluate fi)
-							(setf la (cg-interval fi))
-							(cg-unlock fi))
-						(setf la (- la 1)))
-					))
-				(loop for obj in *cg-box-2d*
-					do (let ((fi (nth 0 obj))
-						(la (nth 1 obj)))
-					(if (= 0 la)
-						(progn
-							(cg-lock fi)
-							(cg-evaluate fi)
-							(setf la (cg-interval fi))
-							(cg-unlock fi))
-						(setf la (- la 1)))
-					)))
-
+				(mapcar (lambda (a)
+					(loop for obj in a
+						do (if (= 0 (cadr obj))
+							(progn
+								(cg-lock (car obj))
+								(cg-evaluate (car obj))
+								(setf (cadr obj) (cg-interval (car obj)))
+								(cg-unlock (car obj)))
+							(setf (cadr obj) (1- (cadr obj)))))) (list *cg-box* *cg-box-2d*)))
 			(let ((time (- (get-internal-run-time) ticks)))
 				(if (< time (* *proc-jump* *itups*))
 					(sleep (- *proc-jump* (/ time *itups*)))

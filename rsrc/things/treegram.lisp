@@ -15,7 +15,7 @@
 			(apply #'append (loop repeat (+ 2 (random 3)) collect(append start point (tree-recursion point (1- count) (/ length 1.35)))))
 			(append start point))))
 
-(defmethod cg-evaluate ((object treegram)))
+(defmethod cg-evaluate ((object treegram)))		
 
 (defmethod cg-visualize ((object treegram))
 	(call-next-method))

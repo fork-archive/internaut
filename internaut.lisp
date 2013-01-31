@@ -16,7 +16,7 @@
 		(loop for i in (directory (concatenate 'string dir "/*.lisp"))
 			do(load i))
 		(loop for i in (directory (concatenate 'string dir "/*/"))
-			do (recursive-load (native-namestring i)))))
+			do (recursive-load (namestring i)))))
 
 	(load "rsrc/config.lisp")
 	(setf *internaut-config* (make-instance 'config))
